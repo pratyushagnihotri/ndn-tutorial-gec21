@@ -14,10 +14,11 @@ node images:
 * PyNDN2
 
 **Part 1** of code walkthrough will cover writing NDN applications
-with the Python CCL library (PyNDN2). We provide template files (method stubs)
-that you can fill in using this document under `app-templates/`. The Python
-library has been pre-installed on the GENI node image via pip and should be usable
-from anywhere (including the interactive interface):
+with the Python CCL library (PyNDN2). We provide template files
+(method stubs) that you can fill in using this document under
+`app-templates/`. The Python library has been pre-installed on the
+GENI node image via pip and should be usable from anywhere (including
+the interactive interface):
 
     $ python
     >>> import pyndn
@@ -31,17 +32,51 @@ and producer.py) to help test and demonstrate the completed strategies
 that can be found under `tools/`. In particular, producer.py allows
 you to delay the producer's response to artifically add latency.
 
-The finished forwarding strategies can be compiled as part of the
-normal NFD build process. First, copy your completed strategy source
-files to `/usr/local/src/NFD/daemon/fw/`. Then, run the following
-commands to compile and re-install NFD:
+Solution code for both Part 1 and Part 2 is available under the `solutions/` directory.
 
-    cd /usr/localsrc/NFD
-    sudo ./waf
-    sudo ./waf install
+# Setup
 
+## Creating a GENI Slice
 
-## Part 1: Writing NDN Applications with PyNDN2
+* import **ndn-tutorial-rspec.txt** into Jacks
+* select your assigned aggregate manager from the drop down menu
+
+## Environment Configuration
+
+If you are on OS X or Linux, you should now configure the environment
+variables in `tools/ndn-tutorial-config.sh`. These variables are used
+by the other `tools/` scripts to setup the tutorial scenarios and move
+files to the GENI nodes. You must provide your GENI username, the path
+to your SSH key, and define the GENI hosts you will be using in
+`hostname:port` notation. For example:
+
+    # GENI username
+    USERNAME="stevendi"
+
+    # GENI SSH key
+    KEY="~/.ssh/id_geni_ssh_rsa"
+
+    # domain names or IP addresses for GENI slice nodes in "host:port" form
+    GENI_HOST="pc5.instageni.northwestern.edu"
+
+    UCLA_HUB="${GENI_HOST}:31038"
+    UCLA_1="${GENI_HOST}:31036"
+    UCLA_2="${GENI_HOST}:31037"
+    ...
+
+## Initial Node Setup
+
+The provided `ndn-tutorial-rspec.txt` specifies an Ubuntu 12.04 disk
+image that is preloaded with NDN software. However, there is one last
+set of scripts that must first be copied to the remote nodes and moved
+into position. Please execute `tools/copy-scripts.sh` to complete the
+node setup.
+
+**NOTE:** If you cannot execute shell scripts, please copy the two
+  scripts found under `tools/.remote-scripts/` to `/usr/local/bin` on
+  each GENI node.
+
+# Part 1: Writing NDN Applications with PyNDN2
 
 This section illustrates how to write simple, but functionally
 complete, "Hello World" NDN consumer and producer applications using
@@ -54,6 +89,23 @@ the PyNDN2 library. In particular, you will learn how to:
 These example applications may be a little longer and complex
 than the minimal NDN "Hello World" application, but we hope they will
 serve as useful starting points for your own applications.
+
+You will implement the following scenario:
+
+![Hello World application topology](img/hello-world-scenario.png)
+
+The above topology is similar in structure to the real NDN testbed;
+university and private sites connect to one another over UDP
+tunnels. Specifically, each site has a "hub" node running the new NDN
+Forwarding Daemon (NFD). Users at each site also run NFD on their own
+machines and connect to the testbed through their local hub.
+
+For this tutorial, you will emulate consumer applications running on
+user machines at UCLA (UCLA-1 and UCLA-2) and a producer application
+at CSU (CSU-1). After setting up routing between UCLA and CSU, your
+consumers can retrieve some simple generated content from the
+producer. Finally, you will observe the caching and reuse of named
+data.
 
 #### Hello World Producer
 
@@ -188,18 +240,17 @@ to a buffer. The exact nature of the buffer depends on whether you're running
 Python 2 or 3. For more details, please see [pyndn.util.Blob](https://github.com/named-data/PyNDN2/blob/master/python/pyndn/util/blob.py)
 
 Together, the previously described methods round out everything
-necessary to create a publisher/producer class. To actually run your
-producer, you'll first need start NFD using the `nfd-start` script and
-wait for your shell's prompt to return. Then, create an instance an
-invoke its run method with an NDN namespace URI:
+necessary to create a simple producer. To run your producer, first
+copy it to the CSU-1 node. Next, start NFD using the `nfd-start`
+script (already on your path) and wait for your shell's prompt to
+return. You can now run your producer script:
 
-    Producer().run("/hello")
+    python hello_producer.py -n /csu/hello
 
 The producer will not do much because it is waiting for
 Interests. However, you should see it print a "Registering prefix
-&lt;namespace&gt;" message with the namespace you provided to `run`.
-When you're done the producer, you can stop the Python application
-with ctrl-c and NFD with the `nfd-stop` script.
+/csu/hello" When you're done, you can stop the producer with ctrl-c
+and NFD with the `nfd-stop` script.
 
 #### Hello World Consumer
 
@@ -317,16 +368,61 @@ times (arbitrarily set to 3 times).
 
 With the timeout callback implemented, we now have a functional
 consumer application that will request a single Data packet and exit
-after success or 3 timeouts. To run your `Consumer`, first start NFD
-and your `Producer`. Then, create a `Consumer` instance and call
-the run method:
+after success or 3 timeouts. To run your consumer, first copy it to
+the CSU-1 node (where your producer script should also reside). Next,
+start NFD using the `nfd-start` script (already on your path) and wait
+for your shell's prompt to return. You can now run your producer
+script:
 
-    Consumer("/hello").run()
+    python hello_producer.py -n /csu/hello
+    python hello_consumer.py -u /csu/hello
 
-Note that we use "/hello" here for the name of the Data to request and
-similarly told the producer application to to serve/generate content
-under the "/hello" namespace.
+Note that we use "/csu/hello" here for the name of the Data to request
+and similarly told the producer application to to serve/generate
+content under the "/csu/hello" namespace. If everything is working,
+your producer and consumer should print a message indicating that they
+successfully received the Interest and Data, respectively.
 
+What happens if you run the consumer again without restarting NFD and
+the producer?
+
+#### Running the Hello World Application Scenarios
+
+With your producer and consumer application finished, let's try
+scaling up the scenario. First, copy your consumer application to the
+GENI nodes labelled UCLA-1 and UCLA-2. No action is required for your
+producer application.
+
+Next, we need to (re)start the NFD instance on each node by running
+the `tools/setup-app.sh`. This script will also setup routing as
+depicted in the previous topology diagram.
+
+**NOTE:** If you cannot execute shell scripts, you will need to SSH
+  into each node and run the following commands to restart NFD and
+  setup routing:
+
+    nfd-stop; sleep 2; nfd-start;
+    sh /usr/local/bin/setup-app-remote.sh
+
+Now, SSH into CSU-1 and start the producer:
+
+    python hello_producer.py -n /csu/hello
+
+and then SSH into UCLA-1 and UCLA-2 to run the consumers:
+
+    python hello_consumer.py -u /csu/hello
+
+You should see each consumer print a message indicating that they
+successfully pulled the content. However, your producer should once
+again show that it only served a single request. Depending on the
+timing of your execution of the consumers (i.e. whether one completed
+first or both ran before one finished), you will have observed caching
+and/or PIT aggregation in action. If both Interests are in flight at
+same time, only one will reach the producer and the other will be
+aggregated on the first's PIT entry at the junction NDN
+node. Alternatively, one Interest may retrieved the cached Content
+Store entry created by Data returning in response to the original
+Interest's request.
 
 ### Extended Hello World
 
@@ -338,6 +434,9 @@ applications. Specifically, you'll learn how to:
 * Communicate the end of a sequence or stream of content to consumers
 * Retrieve content that spans multiple Data packets
 * Pipeline multiple Interests
+
+For this section, we will reuse the previous topology scenario after
+enhancing the producer and consumers.
 
 #### Extended Producer
 
@@ -442,19 +541,32 @@ completeness).
 
         print "Replied to: %s" % interestName.toUri()
 
-Finally, `Producer.onInterest` is now serves the constructed Data
-packets we placed in the `Producer.data` list. `onInterest` determines
-the correct Data packet to publish by converting the incoming
-Interest's sequence number to an integer and returning the packet
-stored at the referenced list index (assuming it is within the list's
-bounds).
+`Producer.onInterest` is now serves the constructed Data packets we
+placed in the `Producer.data` list. `onInterest` determines the
+correct Data packet to publish by converting the incoming Interest's
+sequence number to an integer and returning the packet stored at the
+referenced list index (assuming it is within the list's bounds).
 
-You can now run your extender producer with the following:
+Finally, we need to modify the `__main__` block to support the new
+functionality. Specifically, we'll add a *count* option to the command
+line parser that tells the producer how many Data packets to prepare:
 
-    Producer("/hello", 10).run()
+    if __name__ == '__main__':
+        parser = argparse.ArgumentParser(description='Parse command line args for ndn producer')
+        parser.add_argument("-n", "--namespace", required=True, help='namespace to listen under')
+        parser.add_argument("-c", "--count", required=False, help='number of Data packets to generate, default = 1', nargs='?', const=1,  type=int, default=1)
 
-where "/hello" is the prefix to publish content under and **10**
-represents the number of Data packets to publish.
+        args = parser.parse_args()
+
+        try:
+            namespace = args.namespace
+            maxCount = args.count
+
+            Producer(namespace, maxCount).run()
+
+        except:
+            traceback.print_exc(file=sys.stdout)
+            sys.exit(1)
 
 
 #### Extended Consumer
@@ -586,18 +698,58 @@ use `Consumer._sendNextInterestWithSegment` instead of
 `Consumer._sendNextInterest` because we want to retransmit an Interest
 with a specific sequence number.
 
+Finally, we'll modify the `__main__` code block to support the new functionality. Extend the commandline argument parser to accept a pipeline parameter and pass its value to Consumer's constructor:
 
-We can now run the extended `Consumer` with the following:
+    if __name__ == "__main__":
+        parser = argparse.ArgumentParser(description='Parse command line args for ndn consumer')
 
-        Consumer("/hello", 2).run()
+        parser.add_argument("-u", "--uri", required=True, help='ndn URI to retrieve')
+        parser.add_argument("-p", "--pipe",required=False, help='number of Interests to pipeline, default = 1', nargs= '?', const=1, type=int, default=1)
 
-where "/hello" is the prefix to retrieve content from and **2** represents
-the Interest pipeline size. Feel free to experiment with different
-pipeline sizes.
+        args = parser.parse_args()
+
+        try:
+            uri = args.uri
+            pipeline = args.pipe
+
+            Consumer(uri, pipeline).run()
+
+        except:
+            traceback.print_exc(file=sys.stdout)
+            print "Error parsing command line arguments"
+            sys.exit(1)
 
 
+#### Running the Extended Hello World Application Scenario
 
-## Part 2: Writing Forwarding Strategies
+With the producer and consumer extended, let's re-run the the UCLA to
+CSU scenario. First, copy your extended consumer application to the
+GENI nodes labelled UCLA-1 and UCLA-2. You should also copy the
+extended producer to CSU-1.
+
+Next, (re)start the NFD instance and configure routing on each node by
+running the `tools/setup-app.sh`.
+
+**NOTE:** If you cannot execute shell scripts, you will need to SSH
+  into each node and run the following commands to restart NFD and
+  setup routing:
+
+    nfd-stop; sleep 2; nfd-start;
+    sh /usr/local/bin/setup-app-remote.sh
+
+Now, SSH into CSU-1 and start the producer:
+
+    python hello_producer.py -n /csu/hello -c 10
+
+and then SSH into UCLA-1 and UCLA-2 to run the consumers:
+
+    python hello_consumer.py -u /csu/hello -p 2
+
+You should see each consumer print messages indicating that they
+successfully pulled all of the content. The producer should show that
+it serves each distinct Data packet once.
+
+# Part 2: Writing Forwarding Strategies
 
 Forwarding Strategies are a key component of NFD's *forwarding
 pipelines*; they are responsible for choosing the set of Faces through
@@ -629,11 +781,17 @@ there are often large amounts of setup and accounting code that are
 unsuitable for quickly understanding what is going on in a new
 forwarding strategy. As a result, this section of the guide will omit
 much of the surrounding code such as header files and helper methods
-specific to the strategy's implementation. Instead, the reader should
-refer to the provided forwarding strategy
-(`daemon/fw/{random-load-balancer-strategy,
-weighted-load-balancer-strategy}.{hpp, cpp}`) files for the full
-implementations.
+specific to the strategy's implementation.
+
+![Strategy topology](img/strategy-scenario.png)
+
+You will implement two forwarding strategy scenarios. In the first,
+CSU-1 will act as the consumer and request content hosted under
+/ucla/hello from either UCLA-1 or UCLA-2. The producer hub node,
+UCLA-HUB, is aware of two routes and employs a forwarding strategy to
+determine how incoming Interests should be load balanced across them.
+
+
 
 ## Random Load Balancer
 
@@ -716,27 +874,66 @@ forwarding, as seen in the call to `Strategy::rejectPendingInterest`.
 
 Aside from some setup C++ code and lightweight helper methods, the
 above code is all it takes to create a new forwarding strategy that
-can send or reject Interests. However, we still need to make the
-strategy available for use. Your new strategy must first be
-*installed*, in NFD parlance, so that NFD knows that it exists and
-can activate it when requested. To install
-your strategy, modify `daemon/fw/available-strategies.cpp`'s
-`installStrategies` method:
-
-        void
-        installStrategies(Forwarder& forwarder)
-        {
-            ...
-
-          installStrategy<RandomLoadBalancerStrategy>(forwarder);
-        }
+can send or reject Interests.
 
 
-Now, after starting NFD, you can set the strategy at runtime with nfdc's set-strategy command:
+## Installing and Running the Random Load Balancer Forwarding Strategy
 
-        nfdc set-strategy <namespace> ndn:/localhost/nfd/strategy/random-load-balancer
+![Random load balancer strategy topology](img/random-strategy-scenario.png)
 
-Replace `<namespace>` with any prefix(es) you wish to activate your strategy for.
+The finished forwarding strategy
+(`random-load-balancer-strategy.{cpp,hpp}`) can now be compiled as
+part of the normal NFD build process.
+
+However, we still need to make the strategy available for use. Your
+new strategy must first be *installed*, in NFD parlance, so that NFD
+knows that it exists and can activate it when requested.  First, copy
+your completed strategy source files to
+`/usr/local/src/NFD/daemon/fw/` on the UCLA-HUB node. Next, SSH into
+UCLA-HUB and edit
+`/usr/local/src/NFD/daemon/fw/available-strategies.cpp` C++ source
+file's `installStrategies` method to include:
+
+    void
+    installStrategies(Forwarder& forwarder)
+    {
+      ...
+
+      // Add strategy to be installed
+      installStrategy<RandomLoadBalancerStrategy>(forwarder);
+    }
+
+Compile and re-install NFD:
+
+    cd /usr/local/src/NFD
+    sudo ./waf
+    sudo ./waf install
+
+Finally, (re)start the NFD instance on each node by running the
+`tools/setup-app.sh` on your local machine.
+
+**NOTE:** If you cannot execute shell scripts, you will need to SSH
+  into each node and run the following commands to restart NFD and
+  setup routing:
+
+    nfd-stop; sleep 2; nfd-start;
+    sh /usr/local/bin/setup-strategy-remote.sh random
+
+In this scenario, UCLA-1 and UCLA-2 will act as producers and CSU-1
+will be the consumer. UCLA-HUB, which you installed the forwarding
+strategy on, will load balance requests across the producers.
+
+You may use your existing hello world producer and consumer
+applications to generate traffic. Alternatively, you may use the
+provided `tools/producer.py` and `tools/consumer.py`. The command line
+arguments for these applications are identical to the hello world
+templates with the addition of an optional `-d <delay seconds>` option
+for the producer and will generate an unlimited sequence of data. The
+new consumer provides an optional `-c <count>` option to limit the
+number of requests it generates.
+
+Try adding a 2 second delay to one producer and having the consumer
+request 100 packets. Note how long it takes the consumer to finish.
 
 
 ## Weighted Load Balancer
@@ -966,20 +1163,49 @@ the
 for more information of storing useful items and additional attachment
 points.
 
-To use our new forwarding strategy, we must once again install it by
-modifying `daemon/fw/available-strategies.cpp`'s `installStrategies`
-method:
+## Installing and Running the Weighted Load Balancer Forwarding Strategy Scenario
+
+![Weighted load balancer strategy topology](img/weighted-strategy-scenario.png)
+
+The finished forwarding strategy
+(`weighted-load-balancer-strategy.{cpp,hpp}`) can now be compiled as
+part of the normal NFD build process. Again, copy your completed
+strategy source files to `/usr/local/src/NFD/daemon/fw/` on the
+UCLA-HUB node. Next, SSH into UCLA-HUB and edit
+`/usr/local/src/NFD/daemon/fw/available-strategies.cpp` C++ source
+file's `installStrategies` method to include:
 
         void
         installStrategies(Forwarder& forwarder)
         {
             ...
 
+          // Add strategy to be installed
           installStrategy<WeightedLoadBalancerStrategy>(forwarder);
         }
 
+Compile and re-install NFD:
 
-You will now be able to set `WeightedLoadBalancerStrategy` as the
-active strategy at runtime with nfdc's set-strategy command:
+    cd /usr/local/src/NFD
+    sudo ./waf
+    sudo ./waf install
 
-        nfdc set-strategy <namespace> ndn:/localhost/nfd/strategy/weighted-load-balancer
+Finally, (re)start the NFD instance on each node by running the
+`tools/setup-app.sh` on your local machine.
+
+**NOTE:** If you cannot execute shell scripts, you will need to SSH into each node and run the following commands to restart NFD and setup routing:
+
+    nfd-stop; sleep 2; nfd-start;
+    sh /usr/local/bin/setup-strategy-remote.sh weighted
+
+Like the previous random load balancer scenario, UCLA-1 and UCLA-2
+will act as producers and CSU-1 will be the consumer. UCLA-HUB, which
+you installed the forwarding strategy on, will load balance requests
+across the producers.
+
+Once again, try using the provided `tools/producer.py` and
+`tools/consumer.py`.  Add a 2 second delay to one producer and have
+the consumer request 100 packets. Note how much faster the consumer
+finishes retrieving the same number of packets.
+
+
