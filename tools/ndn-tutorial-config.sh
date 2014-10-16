@@ -1,15 +1,16 @@
 #!/bin/sh
 
 # GENI username
-USERNAME=""
+USERNAME="stevendi"
 
 # GENI SSH key
-KEY=""
+KEY="~/.ssh/id_geni_ssh_rsa"
 
 # domain names or IP addresses for GENI slice nodes in "host:port" form
-UCLA_HUB=""
-UCLA_1=""
-UCLA_2=""
+GENI_HOST="pc5.instageni.northwestern.edu"
+UCLA_HUB="${GENI_HOST}:31038"
+UCLA_1="${GENI_HOST}:31036"
+UCLA_2="${GENI_HOST}:31037"
 
-CSU_HUB=""
-CSU_1=""
+CSU_HUB="${GENI_HOST}:31035"
+CSU_1="${GENI_HOST}:31034"

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source ./ndn-tutorial-config.sh
+source ndn-tutorial-config.sh
 
 # Restart NFD on each node. This will clear the content store
 # and reset routing.
@@ -10,7 +10,10 @@ do
     HOST=`echo $NODE | cut -d ':' -f1`
     PORT=`echo $NODE | cut -d ':' -f2`
 
+    echo "\n\n Restarting NFD on ${NODE}\n\n"
+
     ssh -t -i ${KEY} -p ${PORT}  ${USERNAME}@${HOST} "nfd-stop; sleep 2; nfd-start"
+
 done
 
 sleep 2
@@ -25,3 +28,4 @@ do
     ssh -t -i ${KEY} -p ${PORT} ${USERNAME}@${HOST} "sh /usr/local/bin/setup-app-remote.sh"
 done
 
+echo "\n\n Setup Finished"
