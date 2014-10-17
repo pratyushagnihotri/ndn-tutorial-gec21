@@ -515,10 +515,14 @@ This informs NFD that it has a new forwarding strategy at its disposal.
 
 
 * cd into `ndn-tutorial-gec21/tools/`.
-* (Re)start the NFD instance on each node and setup routing by running
-  `setup-app.sh`.
-  * **Windows:** SSH into each node and run the following commands
-    instead of using `setup-app.sh`:
+* (Re)start the NFD instance on each node and setup routing by running:
+
+<!-- -->
+
+    setup-strategy.sh random
+
+* **Windows:** SSH into each node and run the following commands
+    instead of using `setup-strategy.sh`:
 
 <!-- -->
 
@@ -545,9 +549,9 @@ will load balance requests across the producers.
 
 The`-c 100` tells the consumer to generate 100 distinct Interests.
 
-
+* Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
 * Try adding a 2 second delay to one producer and having the consumer
-request 100 packets again.
+request 100 packets again. (Re-run `setup-strategy.sh` or the alternative Windows instructions first.)
 
 <!-- -->
 

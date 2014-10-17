@@ -9,5 +9,5 @@ do
 
     scp -i ${KEY} -P ${PORT} .remote-scripts/setup-app-remote.sh ${USERNAME}@${HOST}:~/
     scp -i ${KEY} -P ${PORT} .remote-scripts/setup-strategy-remote.sh ${USERNAME}@${HOST}:~/
-    ssh -t -p ${PORT} ${USERNAME}@${HOST} "chmod +x setup-app-remote.sh setup-strategy-remote.sh; sudo mv setup-app-remote.sh setup-app-remote.sh /usr/local/bin;"
+    ssh -t -p ${PORT} ${USERNAME}@${HOST} "chmod +x setup-app-remote.sh setup-strategy-remote.sh; sudo mv setup-app-remote.sh setup-strategy-remote.sh /usr/local/bin;"
 done
