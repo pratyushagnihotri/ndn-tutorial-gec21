@@ -45,11 +45,10 @@ Solution code for both Part 1 and Part 2 is available under the
 
 ## Environment Configuration
 
-* Configure the environment variables in
-  `tools/ndn-tutorial-config.sh`. (Windows: skip this step.)
-* Execute `tools/copy-scripts.sh` on your machine. (Windows: copy the
-  2 scripts under `tools/.remote-scripts/` to `/usr/local/bin` on each
-  GENI node.)
+* cd into `ndn-tutorial-gec21/tools/`.
+* Configure the environment variables `ndn-tutorial-config.sh`. (**Windows:** skip this step.)
+* Execute `copy-scripts.sh`. (**Windows:** copy the 2 scripts under
+  `tools/.remote-scripts/` to `/usr/local/bin` on each GENI node.)
 
 # Part 1: Writing NDN Applications with PyNDN2
 
@@ -88,6 +87,8 @@ Our producer application will serve a "Hello" Data packet in response
 to each incoming Interest. To achieve this, the producer will register
 a prefix to "listen" for Interests matching said prefix.
 
+
+* Open the producer code template located in `ndn-tutorial-gec21/app-templates/hello_producer.py` in an editor.
 * Initialize a KeyChain instance and set our `isDone` state to `False`
 
 <!-- -->
@@ -159,7 +160,7 @@ is called if the prefix registration process encounters an error.
         print "Replied to: %s" % interestName.toUri()
 
 
-* Implement the `onRegisterFailed callback.
+* Implement the `onRegisterFailed` callback.
     * Print the name of the prefix that failed to register.
 
 <!-- -->
@@ -171,7 +172,7 @@ is called if the prefix registration process encounters an error.
 
 **You now have a complete producer application.**
 
-* Copy your producer script to the CSU-1 node.
+* Copy `hello_producer.py` to the CSU-1 node.
 * SSH into CSU-1 and run `nfd-start`. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
 * Run your producer with the following command:
 <!-- -->
@@ -182,7 +183,7 @@ The producer will not do much because it is waiting for
 Interests. However, you should see it print a "Registering prefix
 /csu/hello".
 
-* Stop the producer with ctrl-c
+* Stop the producer with `ctrl-c`
 * Stop NFD with the `nfd-stop` command.
 
 #### Hello World Consumer
@@ -191,6 +192,7 @@ Next, we'll make a consumer application to send Interests to our
 producer and print the response messages. As with the producer,
 we'll first begin by creating an encapsulating `Consumer` class.
 
+* Open the consumer code template located in `ndn-tutorial-gec21/app-templates/hello_consumer.py` in an editor.
 * Initialize the `Consumer`.
 
 <!-- -->
@@ -293,7 +295,7 @@ when the Interest times out, respectively.
 
 **You now have a completed consumer application.**
 
-* Copy your consumer script to the CSU-1 node (where your producer script should also reside).
+* Copy your `hello_consumer.py` to the CSU-1 node (where your producer script should also reside).
 * SSH into CSU-1 and run `nfd-start`. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
 * Run your producer and consumer scripts:
 
@@ -311,15 +313,19 @@ successfully received the Interest and Data, respectively.
 What happens if you run the consumer again without restarting NFD and
 the producer?
 
+* Stop the producer with `ctrl-c`
+* Stop NFD with the `nfd-stop` command.
+
 #### Running the Hello World Application Scenarios
 
-With your producer and consumer application finished, let's try
+With your producer and consumer applications finished, let's try
 scaling up the scenario.
 
-* Copy your consumer application to the GENI nodes labelled UCLA-1 and
-UCLA-2. *No action is required for your producer application.*
-* (Re)start the NFD instance on each node and setup routing by running `tools/setup-app.sh` on your local machine.
-  * **Windows:** SSH into each node and run the following commands instead of using `tools/setup-app.sh`:
+* Copy your `hello_consumer.py` to the GENI nodes labelled UCLA-1 and
+UCLA-2. **No action is required for your producer application.**
+* cd into `ndn-tutorial-gec21/tools/`.
+* (Re)start the NFD instance on each node and setup routing by running `setup-app.sh` on your local machine.
+  * **Windows:** SSH into each node and run the following commands instead of using `setup-app.sh`:
 
 <!-- -->
 
@@ -341,7 +347,7 @@ UCLA-2. *No action is required for your producer application.*
 You should see each consumer print a message indicating that they
 successfully pulled the content. However, your producer should once
 again show that it only served a single request. Depending on the
-timing of your execution of the consumers (i.e. whether one completed
+execution timing of the consumers (i.e. whether one completed
 first or both ran before one finished), you will have observed caching
 and/or PIT aggregation in action. If both Interests are in flight at
 same time, only one will reach the producer and the other will be
@@ -349,6 +355,9 @@ aggregated on the first's PIT entry at the junction NDN
 node. Alternatively, one Interest may retrieved the cached Content
 Store entry created by Data returning in response to the original
 Interest's request.
+
+* Stop the producer with `ctrl-c`
+* Stop NFD with the `nfd-stop` command.
 
 ## Going Further
 
@@ -409,6 +418,7 @@ We will create a stateless, random, load balancer strategy called
 `RandomLoadBalancerStrategy`. Given a set of possible outgoing Faces,
 this strategy will select one at random for forwarding.
 
+* Open the strategy code template located in `ndn-tutorial-gec21/strategy-templates/random-load-balancer-strategy.cpp` in an editor.
 * Override `Strategy::afterReceiveInterest` to randomly choose a next
   hop for each Interest.
 
@@ -477,7 +487,7 @@ can send or reject Interests.
 
 ![Random load balancer strategy topology](img/random-strategy-scenario.png)
 
-* Copy random-load-balancer-strategy.{cpp, hpp} to `/usr/local/src/NFD/daemon/fw/` on UCLA-HUB.
+* Copy `random-load-balancer-strategy.{cpp, hpp}` to `/usr/local/src/NFD/daemon/fw/` on UCLA-HUB.
 * SSH into UCLA-HUB and modify
 `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install"
 the random load balancer strategy.
@@ -505,10 +515,11 @@ This informs NFD that it has a new forwarding strategy at its disposal.
     sudo ./waf install
 
 
+* cd into `ndn-tutorial-gec21/tools/`.
 * (Re)start the NFD instance on each node and setup routing by running
-  `tools/setup-app.sh` on your local machine.
+  `setup-app.sh`.
   * **Windows:** SSH into each node and run the following commands
-    instead of using `tools/setup-app.sh`:
+    instead of using `setup-app.sh`:
 
 <!-- -->
 
@@ -545,6 +556,8 @@ request 100 packets again.
 
 Note how long it takes the consumer to finish. How could this strategy
 be improved?
+
+* Stop both producers with `ctrl-c`
 
 ## Going Further
 
