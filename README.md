@@ -296,8 +296,8 @@ when the Interest times out, respectively.
 **You now have a completed consumer application.**
 
 * Copy your `hello_consumer.py` to the CSU-1 node (where your producer script should also reside).
-* SSH into CSU-1 and run `nfd-start`. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
-* Run your producer and consumer scripts:
+* SSH into CSU-1 with two terminals and run `nfd-start` in one of them. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
+* Run your producer and consumer scripts in separate terminals:
 
 <!-- -->
 
@@ -357,7 +357,6 @@ Store entry created by Data returning in response to the original
 Interest's request.
 
 * Stop the producer with `ctrl-c`
-* Stop NFD with the `nfd-stop` command.
 
 ## Going Further
 
