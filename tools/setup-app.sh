@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source ndn-tutorial-config.sh
+source ./ndn-tutorial-config.sh
 
 # Restart NFD on each node. This will clear the content store
 # and reset routing.

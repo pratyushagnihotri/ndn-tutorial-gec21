@@ -40,14 +40,14 @@ Solution code for both Part 1 and Part 2 is available under the
 
 ## Creating a GENI Slice
 
-* Import **ndn-tutorial-rspec.txt** into Jacks.
-* Select your assigned aggregate manager from the drop down menu.
+* **Step 1:** Import **ndn-tutorial-rspec.txt** into Jacks.
+* **Step 2:** Select your assigned aggregate manager from the drop down menu.
 
 ## Environment Configuration
 
-* cd into `ndn-tutorial-gec21/tools/`.
-* Configure the environment variables `ndn-tutorial-config.sh`. (**Windows:** skip this step.)
-* Execute `copy-scripts.sh`. (**Windows:** copy the 2 scripts under
+* **Step 1:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 2:** Open `ndn-tutorial-config.sh` and edit the environment variables accordingly. (**Windows:** skip this step.)
+* **Step 3:** Execute `copy-scripts.sh`. (**Windows:** copy the 2 scripts under
   `tools/.remote-scripts/` to `/usr/local/bin` on each GENI node.)
 
 # Part 1: Writing NDN Applications with PyNDN2
@@ -88,8 +88,8 @@ to each incoming Interest. To achieve this, the producer will register
 a prefix to "listen" for Interests matching said prefix.
 
 
-* Open the producer code template located in `ndn-tutorial-gec21/app-templates/hello_producer.py` in an editor.
-* Initialize a KeyChain instance and set our `isDone` state to `False`
+* **Step 1:** Open the producer code template located in `ndn-tutorial-gec21/app-templates/hello_producer.py` in an editor.
+* **Step 2:** Initialize a KeyChain instance and set our `isDone` state to `False`
 
 <!-- -->
 
@@ -104,7 +104,7 @@ management. It associates identities with their respective keys. For
 example, a user may have multiple identities such as "Home", "Work",
 "Friends".
 
-* Implement the `Producer`'s event loop
+* **Step 3:** Implement the `Producer`'s event loop
 
 <!-- -->
 
@@ -137,7 +137,7 @@ the provided callback functions: `onInterest` and `onRegisterFailed`. As their n
 `onInterest` is invoked when the application receives an Interest and `onRegisterFailed`
 is called if the prefix registration process encounters an error.
 
-* Implement the `onInterest` callback.
+* **Step 4:** Implement the `onInterest` callback.
     * Print the name of the incoming Interest
     * Create, sign, and send a response Data packet that echoes the Interest's
     name with a "hello" message.
@@ -151,7 +151,7 @@ is called if the prefix registration process encounters an error.
         data.setContent("Hello, " + interestName.toUri())
 
         hourMilliseconds = 3600 * 1000
-        data.getMetaInfo().setFreshnessPeriod(3600 * 1000)
+        data.getMetaInfo().setFreshnessPeriod(hourMilliseconds)
 
         self.keyChain.sign(data, self.keyChain.getDefaultCertificateName())
 
@@ -160,7 +160,7 @@ is called if the prefix registration process encounters an error.
         print "Replied to: %s" % interestName.toUri()
 
 
-* Implement the `onRegisterFailed` callback.
+* **Step 5:** Implement the `onRegisterFailed` callback.
     * Print the name of the prefix that failed to register.
 
 <!-- -->
@@ -172,10 +172,12 @@ is called if the prefix registration process encounters an error.
 
 **You now have a complete producer application.**
 
-* Copy `hello_producer.py` to the CSU-1 node.
-* SSH into CSU-1 and run `nfd-start`. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
-* Run your producer with the following command:
-<!-- -->
+* **Step 6:** Copy `hello_producer.py` to the CSU-1 node.
+* **Step 7:** SSH into CSU-1 and run `nfd-start`. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
+* **Step 8:** Run your producer with the following command:
+
+<!--  -->
+
     python hello_producer.py -n /csu/hello
 
 
@@ -183,8 +185,8 @@ The producer will not do much because it is waiting for
 Interests. However, you should see it print a "Registering prefix
 /csu/hello".
 
-* Stop the producer with `ctrl-c`
-* Stop NFD with the `nfd-stop` command.
+* **Step 9:** Stop the producer with `ctrl-c`.
+* **Step 10:** Stop NFD with the `nfd-stop` command.
 
 #### Hello World Consumer
 
@@ -192,8 +194,8 @@ Next, we'll make a consumer application to send Interests to our
 producer and print the response messages. As with the producer,
 we'll first begin by creating an encapsulating `Consumer` class.
 
-* Open the consumer code template located in `ndn-tutorial-gec21/app-templates/hello_consumer.py` in an editor.
-* Initialize the `Consumer`.
+* **Step 1:** Open the consumer code template located in `ndn-tutorial-gec21/app-templates/hello_consumer.py` in an editor.
+* **Step 2:** Initialize the `Consumer`.
 
 <!-- -->
 
@@ -208,7 +210,7 @@ we'll first begin by creating an encapsulating `Consumer` class.
 Note that the `Consumer constructor initializes a dictionary to keep
 track of outstanding Interests and retransmissions.
 
-* Implement the `Consumer`'s event loop.
+* **Step 3:** Implement the `Consumer`'s event loop.
 
 <!-- -->
 
@@ -227,7 +229,7 @@ track of outstanding Interests and retransmissions.
 `Consumer` abstracts the Interest creation and sending process into
 its own method to simplify the implementation of retransmission.
 
-* Implement the Interest sending abstraction.
+* **Step 4:** Implement the Interest sending abstraction.
 
 <!-- -->
 
@@ -260,7 +262,7 @@ The key part of `_sendNextInterest` is the
 and takes callbacks to invoke when a matching Data packet arrives and for
 when the Interest times out, respectively.
 
-* Implement the Data arrival callback.
+* **Step 5:** Implement the Data arrival callback.
   * Prints the payload of the arriving Data.
   * Delete the outstanding Interest entry.
 
@@ -275,7 +277,7 @@ when the Interest times out, respectively.
 
         self.isDone = True
 
-* Implement the Interest timeout callback.
+* **Step 6:** Implement the Interest timeout callback.
   * Increment the retry count and resend at most 3 times.
 
 <!-- -->
@@ -295,9 +297,9 @@ when the Interest times out, respectively.
 
 **You now have a completed consumer application.**
 
-* Copy your `hello_consumer.py` to the CSU-1 node (where your producer script should also reside).
-* SSH into CSU-1 with two terminals and run `nfd-start` in one of them. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
-* Run your producer and consumer scripts in separate terminals:
+* **Step 7:** Copy your `hello_consumer.py` to the CSU-1 node (where your producer script should also reside).
+* **Step 8:** SSH into CSU-1 with two terminals and run `nfd-start` in one of them. Wait for the shell prompt to return (~10 seconds, you may need to hit Enter).
+* **Step 9:** Run your producer and consumer scripts in separate terminals:
 
 <!-- -->
 
@@ -313,18 +315,18 @@ successfully received the Interest and Data, respectively.
 What happens if you run the consumer again without restarting NFD and
 the producer?
 
-* Stop the producer with `ctrl-c`
-* Stop NFD with the `nfd-stop` command.
+* **Step 10:** Stop the producer with `ctrl-c`.
+* **Step 11:** Stop NFD with the `nfd-stop` command.
 
 #### Running the Hello World Application Scenarios
 
 With your producer and consumer applications finished, let's try
 scaling up the scenario.
 
-* Copy your `hello_consumer.py` to the GENI nodes labelled UCLA-1 and
+* **Step 1:** Copy your `hello_consumer.py` to the GENI nodes labelled UCLA-1 and
 UCLA-2. **No action is required for your producer application.**
-* cd into `ndn-tutorial-gec21/tools/`.
-* (Re)start the NFD instance on each node and setup routing by running `setup-app.sh` on your local machine.
+* **Step 2:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 3:** (Re)start the NFD instance on each node and setup routing by running `setup-app.sh` on your local machine.
   * **Windows:** SSH into each node and run the following commands instead of using `setup-app.sh`:
 
 <!-- -->
@@ -332,13 +334,13 @@ UCLA-2. **No action is required for your producer application.**
     nfd-stop; sleep 2; nfd-start;
     sh /usr/local/bin/setup-app-remote.sh
 
-* SSH into CSU-1 and start the producer:
+* **Step 4:**. SSH into CSU-1 and start the producer:
 
 <!-- -->
 
     python hello_producer.py -n /csu/hello
 
-* SSH into UCLA-1 and UCLA-2 and run one consumer on each:
+* **Step 5:**. SSH into UCLA-1 and UCLA-2 and run one consumer on each:
 
 <!-- -->
 
@@ -356,7 +358,7 @@ node. Alternatively, one Interest may retrieved the cached Content
 Store entry created by Data returning in response to the original
 Interest's request.
 
-* Stop the producer with `ctrl-c`
+* **Step 6:** Stop the producer with `ctrl-c`.
 
 ## Going Further
 
@@ -417,8 +419,8 @@ We will create a stateless, random, load balancer strategy called
 `RandomLoadBalancerStrategy`. Given a set of possible outgoing Faces,
 this strategy will select one at random for forwarding.
 
-* Open the strategy code template located in `ndn-tutorial-gec21/strategy-templates/random-load-balancer-strategy.cpp` in an editor.
-* Override `Strategy::afterReceiveInterest` to randomly choose a next
+* **Step 1:** Open the strategy code template located in `ndn-tutorial-gec21/strategy-templates/random-load-balancer-strategy.cpp` in an editor.
+* **Step 2:** Override `Strategy::afterReceiveInterest` to randomly choose a next
   hop for each Interest.
 
 <!-- -->
@@ -486,12 +488,23 @@ can send or reject Interests.
 
 ![Random load balancer strategy topology](img/random-strategy-scenario.png)
 
-* Copy `random-load-balancer-strategy.{cpp, hpp}` to `/usr/local/src/NFD/daemon/fw/` on UCLA-HUB.
-* SSH into UCLA-HUB and modify
-`/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install"
+* **Step 1:** Copy `random-load-balancer-strategy.{cpp, hpp}` to your home directory on UCLA-HUB.
+* **Step 2:** SSH into UCLA and move the copied forwarding strategy files into NFD's forwarding code directory:
+
+<!-- -->
+
+    sudo mv random-load-balancer-strategy.* `/usr/local/src/NFD/daemon/fw/`
+
+
+* **Step 3:** Modify `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install"
 the random load balancer strategy.
 
 <!-- -->
+
+    // Add an include at the top of the file
+    #include "random-load-balancer-strategy.hpp"
+
+    ...
 
     void
     installStrategies(Forwarder& forwarder)
@@ -505,7 +518,7 @@ the random load balancer strategy.
 
 This informs NFD that it has a new forwarding strategy at its disposal.
 
-* Compile and re-install NFD on UCLA-HUB:
+* **Step 4:** Compile and re-install NFD on UCLA-HUB:
 
 <!-- -->
 
@@ -514,8 +527,8 @@ This informs NFD that it has a new forwarding strategy at its disposal.
     sudo ./waf install
 
 
-* cd into `ndn-tutorial-gec21/tools/`.
-* (Re)start the NFD instance on each node and setup routing by running:
+* **Step 5:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 6:** (Re)start the NFD instance on each node and setup routing by running:
 
 <!-- -->
 
@@ -533,15 +546,15 @@ In this scenario, UCLA-1 and UCLA-2 are producers and CSU-1 is the
 consumer. UCLA-HUB, which you installed the forwarding strategy on,
 will load balance requests across the producers.
 
-* Copy `tools/consumer.py` to CSU-1.
-* Copy `tools/producer.py` to UCLA-1 and UCLA-2.
-* SSH into UCLA-1 and UCLA-2 and run one producer instance on each:
+* **Step 7:** Copy `tools/consumer.py` to CSU-1.
+* **Step 8:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
+* **Step 9:** SSH into UCLA-1 and UCLA-2 and run one producer instance on each:
 
 <!-- -->
 
     python producer.py -n /ucla/hello
 
-* SSH into CSU-1 and run the consumer:
+* **Step 10:** SSH into CSU-1 and run the consumer:
 
 <!-- -->
 
@@ -549,9 +562,9 @@ will load balance requests across the producers.
 
 The`-c 100` tells the consumer to generate 100 distinct Interests.
 
-* Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
-* Try adding a 2 second delay to one producer and having the consumer
-request 100 packets again. (Re-run `setup-strategy.sh` or the alternative Windows instructions first.)
+* **Step 11:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
+* **Step 12:** Try adding a 2 second delay to one producer and having the consumer
+request 100 packets again. (**Make sure you stop both producers with** `ctrl-c` **and re-run** `setup-strategy.sh` **or the alternative Windows instructions first.**)
 
 <!-- -->
 
@@ -560,7 +573,7 @@ request 100 packets again. (Re-run `setup-strategy.sh` or the alternative Window
 Note how long it takes the consumer to finish. How could this strategy
 be improved?
 
-* Stop both producers with `ctrl-c`
+* **Step 13:** Stop both producers with `ctrl-c`.
 
 ## Going Further
 

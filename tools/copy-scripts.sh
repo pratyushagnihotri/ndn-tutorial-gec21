@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source ndn-tutorial-config.sh
+source ./ndn-tutorial-config.sh
 
 for NODE in ${UCLA_HUB} ${UCLA_1} ${UCLA_2} ${CSU_HUB} ${CSU_1};
 do
