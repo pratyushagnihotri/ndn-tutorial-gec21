@@ -1,4 +1,4 @@
-### Extended Hello World
+# Extended Hello World
 
 With the basics of NDN application writing in PyNDN2 covered, we can
 now extend the producer and consumer into more useful NDN
@@ -12,7 +12,7 @@ applications. Specifically, you'll learn how to:
 For this section, we will reuse the previous topology scenario after
 enhancing the producer and consumers.
 
-#### Extended Producer
+## Extended Producer
 
 The extended `Producer` class pre-packetizes its content and stores it
 to make it easy to serve subsequent requests. Typically, an
@@ -21,10 +21,13 @@ packet size (currently about 8 KB). This makes it necessary for the
 publisher to *sequence* the Data packets so that consumers can
 recognize when there is more content to be retrieved.
 
-* Extend `Producer`'s constructor.
+* **Step 1:** Extend `Producer`'s constructor.
 
 In NDN, packet sequence numbers can be presented in name components by
-the `0x00` marker followed by the number (see the [NDN Naming Conventions](http://named-data.net/wp-content/uploads/2014/08/ndn-tr-22-ndn-memo-naming-conventions.pdf) memo for more details). We can see this in action in the extended `Producer`'s constructor.
+the `0x00` marker followed by the number (see the
+[NDN Naming Conventions](http://named-data.net/wp-content/uploads/2014/08/ndn-tr-22-ndn-memo-naming-conventions.pdf)
+memo for more details). We can see this in action in the extended
+`Producer`'s constructor.
 
     class Producer(object):
 
@@ -58,11 +61,9 @@ the `0x00` marker followed by the number (see the [NDN Naming Conventions](http:
               self.data.append(data)
 
 
-We initialize a list to store the Data packets we create. For the sake
-of this example, we'll generate a pre-determined number of packets
-specified by `maxCount`. In a real application, such as serving a
-large file, `maxCount` could instead be calculated based on the
-desired Data packet size.
+We initialize a list to store the Data packets we create. In this
+example, we'll generate a pre-determined number of packets specified
+by `maxCount`.
 
 Knowing the number of packets to generate ahead of time or that are
 remaining allows us to inform the consumer of the end of the content
@@ -77,7 +78,9 @@ is the last item in the sequence. One common use is for the
 FinalBlockId to refer to a sequence number name component, but any
 valid name component can signal the end of a collection.
 
-* Modify the event loop method.
+* **Step 2:** Modify the event loop method.
+
+<!-- -->
 
     def run(self):
         face = Face()
@@ -99,7 +102,7 @@ valid name component can signal the end of a collection.
 prefix and have constructed all of the Data packets in the
 constructor.
 
-* Modify `onInterest` to serve Data out of the pre-constructed packet set.
+* **Step 3:** Modify `onInterest` to serve Data out of the pre-constructed packet set.
 
 <!-- -->
 
@@ -115,10 +118,8 @@ constructor.
 `onInterest` determines the correct Data packet to publish by
 converting the incoming Interest's sequence number to a list index.
 
-* Expose the static dataset functionality in the script's `__main__` block.
-
-Add a *count* option to the command line parser that tells the
-producer how many Data packets to prepare.
+* **Step 4:** Expose the static dataset functionality in the script's `__main__` block.
+  * Add a *count* option to the command line parser that tells the producer how many Data packets to prepare.
 
     if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='Parse command line args for ndn producer')
@@ -138,20 +139,20 @@ producer how many Data packets to prepare.
             sys.exit(1)
 
 
-#### Extended Consumer
+## Extended Consumer
 
-We can now extend our initial `Consumer` class to fully use the
+We can now extend the `Consumer` class to use the
 enhanced `Producer`. First, `Consumer` must be able to request the
 entire range of published content. Second, `Consumer` should be able
 to request *multiple* Data packets at once by pipelining the
-Interests. While `Consumer` could wait for each requested Data to
-return before requesting another item, the process is much slower than
-requesting multiple items simultaneously.
+Interests.
 
-* Extend `Consumer`'s constructor.
+* **Step 1:** Extend `Consumer`'s constructor.
   * Keep track of the next Data segment to request.
-  * Accept a pipeline size to determine the number of inflight
+  * Accept a pipeline size to determine the number of in flight
     Interests to maintain.
+
+<!-- -->
 
     class Consumer(object):
         def __init__(self, prefix, pipeline):
@@ -164,7 +165,7 @@ requesting multiple items simultaneously.
 
 
 
-* Modify `run` to maintain the Interest pipeline.
+* **Step 2:** Modify `run` to maintain the Interest pipeline.
 
 <!-- -->
 
@@ -182,13 +183,11 @@ requesting multiple items simultaneously.
             print "ERROR: %s" %  e
 
 
-`run` immediately sends `self.pipeline` count Interests. As each
-Interest returns Data (or expires), a new Interest will be sent in its
-place for the next segment (or retransmission). This process repeats
-until the entire collection has been retrieved.
+`run` immediately sends `self.pipeline` count Interests. A new
+Interest will be sent to replace each satisfied (or expired) Interest.
 
 
-* Refactor Interest sending to handle retransmission of earlier segments.
+* **Step 3:** Refactor Interest sending to handle retransmission of earlier segments.
 
 <!-- -->
 
@@ -210,6 +209,7 @@ until the entire collection has been retrieved.
         self.face.expressInterest(interest, self._onData, self._onTimeout)
         print "Sent Interest for %s" % uri
 
+
 It is now possible that we either need to request the latest segment
 or retransmit any one of the previously pipelined
 Interests. `_sendNextInterest` has been refactored into a frontend for
@@ -219,7 +219,7 @@ expects a `Name` instance with the appropriate sequence number
 appended.
 
 
-* Modify `_onData` to look for the last Data segment.
+* **Step 4:*** Modify `_onData` to look for the last Data segment.
 
 <!-- -->
 
@@ -239,7 +239,8 @@ appended.
             self._sendNextInterest(self.prefix)
             self.nextSegment += 1
 
-`_onData` now checks if the arrived Data packet is the final block of the collection and starts the program termination process if it is.
+`_onData` now checks if the arrived Data packet is the final block of
+the collection and starts the program termination process if it is.
 
 A Data packet's FinalBlockId is accessed, much like it is set, via a
 meta-information object. Before checking the value of the
@@ -252,7 +253,7 @@ instance. We can then compare the FinalBlockId directly against the
 Data's name component preceding the implicit digest (i.e. the -1 with
 PyNDN2's negative index support).
 
-* Modify timeout handling to support retrying earlier segments.
+* **Step 5:** Modify timeout handling to support retrying earlier segments.
 
 <!-- -->
 
@@ -271,9 +272,9 @@ PyNDN2's negative index support).
 `Consumer._onTimeout` now uses`Consumer._sendNextInterestWithSegment`
 to retransmit an Interest with a specific sequence number.
 
-* Expose Interest pipelining in the script's `__main__` block.
-
-Extend the commandline argument parser to accept a pipeline parameter and pass its value to Consumer's constructor.
+* **Step 6:** Expose Interest pipelining in the script's `__main__` block.
+  * Extend the commandline argument parser to accept a pipeline
+    parameter and pass its value to Consumer's constructor.
 
     if __name__ == "__main__":
         parser = argparse.ArgumentParser(description='Parse command line args for ndn consumer')
@@ -295,29 +296,29 @@ Extend the commandline argument parser to accept a pipeline parameter and pass i
             sys.exit(1)
 
 
-#### Running the Extended Hello World Application Scenario
+## Running the Extended Hello World Application Scenario
 
-With the producer and consumer extended, let's re-run the the UCLA to
-CSU scenario.
+Next, we will re-run the UCLA to CSU scenario with the extended producer and consumer.
 
-* Copy the extended consumer application to UCLA-1 and UCLA-2.
-* Copy the extended producer to CSU-1.
-* (Re)start the NFD instance on each node and configure routing  by
-running the `tools/setup-app.sh` on your local machine.
-  * **Windows:** SSH into each node and run the following commands instead of using `tools/setup-app.sh`:
+* **Step 1:** Copy the extended consumer application to UCLA-1 and UCLA-2.
+* **Step 2:** Copy the extended producer to CSU-1.
+* **Step 3:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 4:** (Re)start the NFD instance on each node and configure routing by
+running the `setup-app.sh` on your local machine.
+  * **Windows:** SSH into each node and run the following commands instead of using `setup-app.sh`:
 
 <!-- -->
 
     nfd-stop; sleep 2; nfd-start;
     sh /usr/local/bin/setup-app-remote.sh
 
-* SSH into CSU-1 and start the producer:
+* **Step 5:** SSH into CSU-1 and start the producer:
 
 <!-- -->
 
     python hello_producer.py -n /csu/hello -c 10
 
-* SSH into UCLA-1 and UCLA-2 and run one consumer on each:
+* **Step 6:** SSH into UCLA-1 and UCLA-2 and run one consumer on each:
 
 <!-- -->
 
@@ -327,15 +328,18 @@ You should see each consumer print messages indicating that they
 successfully pulled all of the content. The producer should show that
 it serves each distinct Data packet once.
 
-## Weighted Load Balancer
+# Implementing a Stateful Forwarding Strategy
+
 
 While a good demonstration of the basic principles of creating a
-forwarding strategy, our stateless `RandomLoadBalancerStrategy` is
-probably too simple for many real world use cases. Instead, you may
-want to create a strategy that stores and acts on some kind of
-measurement information. NFD provides an interface for
-attaching information to existing constructs such as PIT entries and a
-Measurements table for this purpose.
+forwarding strategy, the stateless `RandomLoadBalancerStrategy` you
+hopefully saw how problems arise when the load balanced servers have
+different response times. Ideally, the strategy should take retrieval
+performance measurements and make forwarding decisions accordingly. NFD
+provides an interface for attaching information to existing constructs
+such as PIT entries and a Measurements table for this purpose.
+
+## Weighted Load Balancer
 
 For our next custom strategy, we will take advantage of these storage
 options to keep track of performance information. The
@@ -351,13 +355,13 @@ collection where it can be easily retrieved and *persist* across
 Interests (after all, the PIT entry will be consumed). NFD's
 Measurement table is such a storage option.
 
-To begin, we'll name the new strategy
-`ndn:/localhost/nfd/strategy/weighted-load-balancer`:
+* **Step 1:** Open the strategy code template located in
+  `ndn-tutorial-gec21/strategy-templates/weighted-load-balancer-strategy.cpp`
+  in an editor.
+* **Step 2:** Review custom (provided) storage classes.
 
-    const Name WeightedLoadBalancerStrategy::STRATEGY_NAME("ndn:/localhost/nfd/strategy/weighted-load-balancer");
-
-Next, before digging into the implementation of the strategy itself,
-we'll define two custom storage classes to hold our clock and delay
+Before digging into the implementation of the strategy itself,
+we'll review two custom storage classes to hold our clock and delay
 measurements. The only requirement for custom storage classes is that
 they extend the `StrategyInfo` class; NFD will not attempt to modify
 the data itself in anyway, but will garbage collect old Measurement
@@ -397,11 +401,13 @@ table data.
 collection (sorted by increasing delay) and provides helpers to
 manipulate the set.
 
-With the storage classes defined, we can now override the `Strategy`
-class' methods. First, we will override `afterReceiveInterest` to
-record Interest send times by creating and storing `MyPitInfo`
-instances. The delay biasing calculations and housekeeping are
-implemented in other methods that are omitted for brevity.
+* **Step 3:** Override `afterReceiveInterest` to record the time each
+  Interest is sent.
+
+ `afterReceiveInterest` to record Interest send times by creating and
+storing `MyPitInfo` instances. The delay biasing calculations and
+housekeeping are implemented in other methods that are omitted for
+brevity.
 
     void
     WeightedLoadBalancerStrategy::afterReceiveInterest(const Face& inFace,
@@ -438,14 +444,14 @@ The first important line in the above code is
 which creates a new `MyPitInfo` instance (our send time storage) and
 attaches it to the PIT entry.
 
-Next, our strategy needs to access its previously stored delay
-measurements to determine where it should send the current
-Interest. For this, the strategy needs to access the Measurements
-table. Measurements table entries are associated with name prefixes
-just like any other (FIB, PIT, etc.)  NFD table. Here, we have a
-helper method that will lookup and retrieve the Measurements table
-entry using the FIB entry's prefix (i.e. stored at the same level of
-the tree).
+* **Step 4:** Review `afterReceiveInterest`'s (provided) helper, `myGetOrCreateMeasurementInfo`.
+
+`WeightedLoadBalancerStrategy` needs to access its stored delay
+measurements, stored in the Measurements table, to determine where it
+should send the current Interest. Each Measurements entry is
+associated with a name prefix. The `myGetOrCreateMeasurementInfo`
+helper method looks up and retrieve the Measurements table entry using
+the FIB entry's prefix.
 
     shared_ptr<MyMeasurementInfo>
     WeightedLoadBalancerStrategy::myGetOrCreateMyMeasurementInfo(const shared_ptr<fib::Entry>& entry)
@@ -468,8 +474,8 @@ the tree).
     }
 
 Access to Measurement table entries is restricted to the forwarding
-strategy that is assigned for that prefix. NFD provides access control
-via the `MeasurementsAccessor` class. All attempts to retrieve
+strategy  assigned for that prefix. Access control
+is enforced via the `MeasurementsAccessor` class. All attempts to retrieve
 Measurement entries must go through this access (acquired in the above
 code via `Strategy::getMeasurements()`). This caveat aside, accessing
 and storing information on Measurement entries is identical to PIT
@@ -478,16 +484,17 @@ the surround code creates a new instance of our custom delay storage
 class if one was not already present.
 
 
+* **Step 5:** Implement `beforeSatisfyPendingInterest`.
+
 With the Interest clock started and access to our delay measurements
-for sending, we now look to actually recording the delay
+for sending, we will now calculate and record the delay
 measurements. To do this, we need to stop the clock when the Data
 packet arrives. NFD will notify our strategy when Data arrives before
 satisfying the corresponding PIT entry. The strategy's
-`beforeSatisfyPendingInterest` method will be invoked once for each PIT entry
-that is consumed with the PIT entry, the Face the Data is arrived
-over, and the Data itself. We can access the information
-stored on the PIT entry by calling `pit::Entry::getStrategyInfo<T>()`
-(where `T` is the custom information type, `MyPitInfo` here).
+`beforeSatisfyPendingInterest` method will be invoked once for each
+PIT entry that is consumed. We can access the information stored on
+the PIT entry by calling `pit::Entry::getStrategyInfo<T>()` (where `T`
+is the custom information type, `MyPitInfo` here).
 
     void
     WeightedLoadBalancerStrategy::beforeSatisfyPendingInterest(shared_ptr<pit::Entry> pitEntry,
@@ -558,43 +565,87 @@ points.
 
 ![Weighted load balancer strategy topology](img/weighted-strategy-scenario.png)
 
-The finished forwarding strategy
-(`weighted-load-balancer-strategy.{cpp,hpp}`) can now be compiled as
-part of the normal NFD build process. Again, copy your completed
-strategy source files to `/usr/local/src/NFD/daemon/fw/` on the
-UCLA-HUB node. Next, SSH into UCLA-HUB and edit
-`/usr/local/src/NFD/daemon/fw/available-strategies.cpp` C++ source
-file's `installStrategies` method to include:
+* **Step 1:** Copy `weighted-load-balancer-strategy.{cpp, hpp}` to your home directory on UCLA-HUB.
+* **Step 2:** SSH into UCLA and move the copied forwarding strategy files into NFD's forwarding code directory:
 
-        void
-        installStrategies(Forwarder& forwarder)
-        {
-            ...
+<!-- -->
 
-          // Add strategy to be installed
-          installStrategy<WeightedLoadBalancerStrategy>(forwarder);
-        }
+    sudo mv weighted-load-balancer-strategy.* `/usr/local/src/NFD/daemon/fw/`
 
-Compile and re-install NFD:
+
+* **Step 3:** Modify `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install" the weighted load balancer strategy.
+
+<!-- -->
+
+    // Add an include at the top of the file
+    #include "weighted-load-balancer-strategy.hpp"
+
+    ...
+
+    void
+    installStrategies(Forwarder& forwarder)
+    {
+      ...
+
+      // Add strategy to be installed
+      installStrategy<WeightedLoadBalancerStrategy>(forwarder);
+    }
+
+
+* **Step 4:** Compile and re-install NFD on UCLA-HUB:
+
+<!-- -->
 
     cd /usr/local/src/NFD
     sudo ./waf
     sudo ./waf install
 
-Finally, (re)start the NFD instance on each node by running the
-`tools/setup-app.sh` on your local machine.
+* **Step 5:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 6:** (Re)start the NFD instance on each node and setup routing by running:
 
-**NOTE:** If you cannot execute shell scripts, you will need to SSH into each node and run the following commands to restart NFD and setup routing:
+<!-- -->
+
+    setup-strategy.sh weighted
+
+* **Windows:** SSH into each node and run the following commands
+    instead of using `setup-strategy.sh`:
+
+<!-- -->
 
     nfd-stop; sleep 2; nfd-start;
     sh /usr/local/bin/setup-strategy-remote.sh weighted
 
-Like the previous random load balancer scenario, UCLA-1 and UCLA-2
-will act as producers and CSU-1 will be the consumer. UCLA-HUB, which
-you installed the forwarding strategy on, will load balance requests
-across the producers.
+Like the random load balancer scenario, UCLA-1 and UCLA-2 will act as
+producers and CSU-1 will be the consumer. UCLA-HUB will load balance
+requests across the producers.
 
 Once again, try using the provided `tools/producer.py` and
 `tools/consumer.py`.  Add a 2 second delay to one producer and have
 the consumer request 100 packets. Note how much faster the consumer
 finishes retrieving the same number of packets.
+
+* **Step 7:** Copy `tools/consumer.py` to CSU-1.
+* **Step 8:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
+* **Step 9:** SSH into UCLA-1 and run one producer:
+
+<!-- -->
+
+    python producer.py -n /ucla/hello
+
+* **Step 10:** SSH into UCLA-2 and run one producer with a delay of 2 seconds:
+
+<!-- -->
+
+    python producer.py -n /ucla/hello -d 2
+
+* **Step 11:** SSH into CSU-1 and run the consumer:
+
+<!-- -->
+
+    python consumer.py -u /ucla/hello -c 100
+
+* **Step 12:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
+
+Note how much faster the consumers finishes in this scenario compared to using the random load balancer strategy.
+
+* **Step 13:** Stop both producers with `ctrl-c`.
