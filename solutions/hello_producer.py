@@ -71,7 +71,7 @@ class Producer(object):
         data.setContent("Hello, " + interestName.toUri())
 
         hourMilliseconds = 3600 * 1000
-        data.getMetaInfo().setFreshnessPeriod(3600 * 1000)
+        data.getMetaInfo().setFreshnessPeriod(hourMilliseconds)
 
         self.keyChain.sign(data, self.keyChain.getDefaultCertificateName())
 
