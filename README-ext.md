@@ -1,4 +1,23 @@
-# Extended Hello World
+# Part 0: Prerequisites
+
+This section's instructions are intended for fresh starts after
+clearing your shell's environment and GENI resources. **Please skip
+these instructions if you are following this guide immediately after
+completing README.md.**
+
+## Creating a GENI Slice
+
+* **Step 1:** Import **ndn-tutorial-rspec.txt** into Jacks.
+* **Step 2:** Select your assigned aggregate manager from the drop down menu.
+
+## Environment Configuration
+
+* **Step 1:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 2:** Open `ndn-tutorial-config.sh` and edit the environment variables accordingly. (**Windows:** skip this step.)
+* **Step 3:** Execute `copy-scripts.sh`. (**Windows:** copy the 2 scripts under
+  `tools/.remote-scripts/` to `/usr/local/bin` on each GENI node.)
+
+# Part 1: Extended Hello World
 
 With the basics of NDN application writing in PyNDN2 covered, we can
 now extend the producer and consumer into more useful NDN
@@ -626,17 +645,17 @@ finishes retrieving the same number of packets.
 
 * **Step 7:** Copy `tools/consumer.py` to CSU-1.
 * **Step 8:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
-* **Step 9:** SSH into UCLA-1 and run one producer:
-
-<!-- -->
-
-    python producer.py -n /ucla/hello
-
-* **Step 10:** SSH into UCLA-2 and run one producer with a delay of 2 seconds:
+* **Step 9:** SSH into UCLA-1 and run one producer with a delay of 2 seconds:
 
 <!-- -->
 
     python producer.py -n /ucla/hello -d 2
+
+* **Step 10:** SSH into UCLA-2 and run one producer with no delay:
+
+<!-- -->
+
+    python producer.py -n /ucla/hello
 
 * **Step 11:** SSH into CSU-1 and run the consumer:
 
