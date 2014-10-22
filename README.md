@@ -493,7 +493,7 @@ can send or reject Interests.
 
 <!-- -->
 
-    sudo mv random-load-balancer-strategy.* `/usr/local/src/NFD/daemon/fw/`
+    sudo mv random-load-balancer-strategy.* /usr/local/src/NFD/daemon/fw/
 
 
 * **Step 3:** Modify `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install"
