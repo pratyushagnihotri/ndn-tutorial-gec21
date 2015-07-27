@@ -6,11 +6,10 @@ PyNDN2 as well as how to develop a new forwarding strategy for NFD.
 More information about NFD, ndn-cxx, PyNDN2, and the rest of the NDN
 Platform, can be found at the [NDN Platform homepage](http://named-data.net/codebase/platform/).
 
-The following NDN software has been pre-installed on the provided GENI
-node images:
+This tutorial depends on the following NDN software:
 
-* NFD 0.2.0
-* ndn-cxx 0.2.0
+* NFD 0.3.3
+* ndn-cxx 0.3.3
 * PyNDN2
 
 **Part 1** of code walkthrough will cover writing NDN applications
@@ -495,30 +494,7 @@ can send or reject Interests.
 
     sudo mv random-load-balancer-strategy.* /usr/local/src/NFD/daemon/fw/
 
-
-* **Step 3:** Modify `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install"
-the random load balancer strategy.
-
-<!-- -->
-
-    // Add an include at the top of the file
-    #include "random-load-balancer-strategy.hpp"
-
-    ...
-
-    void
-    installStrategies(Forwarder& forwarder)
-    {
-      ...
-
-      // Add strategy to be installed
-      installStrategy<RandomLoadBalancerStrategy>(forwarder);
-    }
-
-
-This informs NFD that it has a new forwarding strategy at its disposal.
-
-* **Step 4:** Compile and re-install NFD on UCLA-HUB:
+* **Step 3:** Compile and re-install NFD on UCLA-HUB:
 
 <!-- -->
 
@@ -527,8 +503,8 @@ This informs NFD that it has a new forwarding strategy at its disposal.
     sudo ./waf install
 
 
-* **Step 5:** cd into `ndn-tutorial-gec21/tools/`.
-* **Step 6:** (Re)start the NFD instance on each node and setup routing by running:
+* **Step 4:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 5:** (Re)start the NFD instance on each node and setup routing by running:
 
 <!-- -->
 
@@ -546,15 +522,15 @@ In this scenario, UCLA-1 and UCLA-2 are producers and CSU-1 is the
 consumer. UCLA-HUB, which you installed the forwarding strategy on,
 will load balance requests across the producers.
 
-* **Step 7:** Copy `tools/consumer.py` to CSU-1.
-* **Step 8:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
-* **Step 9:** SSH into UCLA-1 and UCLA-2 and run one producer instance on each:
+* **Step 6:** Copy `tools/consumer.py` to CSU-1.
+* **Step 7:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
+* **Step 8:** SSH into UCLA-1 and UCLA-2 and run one producer instance on each:
 
 <!-- -->
 
     python producer.py -n /ucla/hello
 
-* **Step 10:** SSH into CSU-1 and run the consumer:
+* **Step 9:** SSH into CSU-1 and run the consumer:
 
 <!-- -->
 
@@ -562,8 +538,8 @@ will load balance requests across the producers.
 
 The`-c 100` tells the consumer to generate 100 distinct Interests.
 
-* **Step 11:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
-* **Step 12:** Try adding a 2 second delay to one producer and having the consumer
+* **Step 10:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
+* **Step 11:** Try adding a 2 second delay to one producer and having the consumer
 request 100 packets again. (**Make sure you stop both producers with** `ctrl-c` **and re-run** `setup-strategy.sh` **or the alternative Windows instructions first.**)
 
 <!-- -->
@@ -573,7 +549,7 @@ request 100 packets again. (**Make sure you stop both producers with** `ctrl-c` 
 Note how long it takes the consumer to finish. How could this strategy
 be improved?
 
-* **Step 13:** Stop both producers with `ctrl-c`.
+* **Step 12:** Stop both producers with `ctrl-c`.
 
 ## Going Further
 

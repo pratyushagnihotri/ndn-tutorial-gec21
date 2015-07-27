@@ -541,11 +541,11 @@ is the custom information type, `MyPitInfo` here).
 
           if (static_cast<bool>(measurementsEntryInfo))
             {
-              accessor.extendLifetime(measurementsEntry, seconds(16));
+              accessor.extendLifetime(*measurementsEntry, seconds(16));
               measurementsEntryInfo->updateFaceDelay(inFace, delay);
             }
 
-          measurementsEntry = accessor.getParent(measurementsEntry);
+          measurementsEntry = accessor.getParent(*measurementsEntry);
         }
     }
 
@@ -569,7 +569,7 @@ information. Measurement entry information periodically expires and is
 garbage collected. We can prevent this from happening by asking
 NFD to extend the information's lifetime through the accessor:
 
-    accessor.extendLifetime(measurementsEntry, seconds(16));
+    accessor.extendLifetime(*measurementsEntry, seconds(16));
 
 Together, `beforeSatisfyPendingInterest` and `afterReceiveInterest`
 make up the core of forwarding strategies; everything else is
@@ -591,27 +591,7 @@ points.
 
     sudo mv weighted-load-balancer-strategy.* `/usr/local/src/NFD/daemon/fw/`
 
-
-* **Step 3:** Modify `/usr/local/src/NFD/daemon/fw/available-strategies.cpp` to "install" the weighted load balancer strategy.
-
-<!-- -->
-
-    // Add an include at the top of the file
-    #include "weighted-load-balancer-strategy.hpp"
-
-    ...
-
-    void
-    installStrategies(Forwarder& forwarder)
-    {
-      ...
-
-      // Add strategy to be installed
-      installStrategy<WeightedLoadBalancerStrategy>(forwarder);
-    }
-
-
-* **Step 4:** Compile and re-install NFD on UCLA-HUB:
+* **Step 3:** Compile and re-install NFD on UCLA-HUB:
 
 <!-- -->
 
@@ -619,8 +599,8 @@ points.
     sudo ./waf
     sudo ./waf install
 
-* **Step 5:** cd into `ndn-tutorial-gec21/tools/`.
-* **Step 6:** (Re)start the NFD instance on each node and setup routing by running:
+* **Step 4:** cd into `ndn-tutorial-gec21/tools/`.
+* **Step 5:** (Re)start the NFD instance on each node and setup routing by running:
 
 <!-- -->
 
@@ -643,28 +623,28 @@ Once again, try using the provided `tools/producer.py` and
 the consumer request 100 packets. Note how much faster the consumer
 finishes retrieving the same number of packets.
 
-* **Step 7:** Copy `tools/consumer.py` to CSU-1.
-* **Step 8:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
-* **Step 9:** SSH into UCLA-1 and run one producer with a delay of 2 seconds:
+* **Step 6:** Copy `tools/consumer.py` to CSU-1.
+* **Step 7:** Copy `tools/producer.py` to UCLA-1 and UCLA-2.
+* **Step 8:** SSH into UCLA-1 and run one producer with a delay of 2 seconds:
 
 <!-- -->
 
     python producer.py -n /ucla/hello -d 2
 
-* **Step 10:** SSH into UCLA-2 and run one producer with no delay:
+* **Step 9:** SSH into UCLA-2 and run one producer with no delay:
 
 <!-- -->
 
     python producer.py -n /ucla/hello
 
-* **Step 11:** SSH into CSU-1 and run the consumer:
+* **Step 10:** SSH into CSU-1 and run the consumer:
 
 <!-- -->
 
     python consumer.py -u /ucla/hello -c 100
 
-* **Step 12:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
+* **Step 11:** Check your terminals on UCLA-1 and UCLA-2 to observe the Interests that have been received and replied to. The trailing (# <number>) indicates the number of Interests that have been received so far.
 
 Note how much faster the consumers finishes in this scenario compared to using the random load balancer strategy.
 
-* **Step 13:** Stop both producers with `ctrl-c`.
+* **Step 12:** Stop both producers with `ctrl-c`.
