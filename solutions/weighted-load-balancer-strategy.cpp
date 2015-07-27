@@ -96,6 +96,9 @@ public:
     : creationTime(system_clock::now())
   {}
 
+  static int constexpr
+  getTypeId() { return 9970; }
+
   system_clock::TimePoint creationTime;
 };
 
@@ -115,6 +118,9 @@ public:
 
   static milliseconds
   calculateInverseDelaySum(const shared_ptr<MyMeasurementInfo>& info);
+
+  static int constexpr
+  getTypeId() { return 9971; }
 
 public:
 
@@ -151,6 +157,7 @@ public:
 NFD_LOG_INIT("WeightedLoadBalancerStrategy");
 
 const Name WeightedLoadBalancerStrategy::STRATEGY_NAME("ndn:/localhost/nfd/strategy/weighted-load-balancer");
+NFD_REGISTER_STRATEGY(WeightedLoadBalancerStrategy);
 
 WeightedLoadBalancerStrategy::WeightedLoadBalancerStrategy(Forwarder& forwarder,
                                                            const Name& name)
@@ -217,11 +224,11 @@ WeightedLoadBalancerStrategy::beforeSatisfyPendingInterest(shared_ptr<pit::Entry
 
       if (static_cast<bool>(measurementsEntryInfo))
         {
-          accessor.extendLifetime(measurementsEntry, seconds(16));
+          accessor.extendLifetime(*measurementsEntry, seconds(16));
           measurementsEntryInfo->updateFaceDelay(inFace, delay);
         }
 
-      measurementsEntry = accessor.getParent(measurementsEntry);
+      measurementsEntry = accessor.getParent(*measurementsEntry);
     }
 }
 

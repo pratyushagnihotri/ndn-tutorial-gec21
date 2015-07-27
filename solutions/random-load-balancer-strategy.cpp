@@ -39,6 +39,7 @@ namespace fw {
 
 
 const Name RandomLoadBalancerStrategy::STRATEGY_NAME("ndn:/localhost/nfd/strategy/random-load-balancer");
+NFD_REGISTER_STRATEGY(RandomLoadBalancerStrategy);
 
 RandomLoadBalancerStrategy::RandomLoadBalancerStrategy(Forwarder& forwarder, const Name& name)
   : Strategy(forwarder, name)
