@@ -52,9 +52,9 @@ public:
                        shared_ptr<pit::Entry> pitEntry);
 
   virtual void
-  beforeSatisfyPendingInterest(shared_ptr<pit::Entry> pitEntry,
-                               const Face& inFace,
-                               const Data& data);
+  beforeSatisfyInterest(shared_ptr<pit::Entry> pitEntry,
+                        const Face& inFace,
+                        const Data& data);
 
 
 protected:

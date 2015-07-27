@@ -175,9 +175,14 @@ WeightedLoadBalancerStrategy::afterReceiveInterest(const Face& inFace,
                                                    shared_ptr<fib::Entry> fibEntry,
                                                    shared_ptr<pit::Entry> pitEntry)
 {
+  NFD_LOG_TRACE("Received Interest: " << interest.getName());
+
   // not a new Interest, don't forward
   if (pitEntry->hasUnexpiredOutRecords())
-    return;
+    {
+      NFD_LOG_TRACE("Not a new Interest, " << interest.getName() << ", refusing to forward");
+      return;
+    }
 
   // create timer information and attach to PIT entry
   pitEntry->setStrategyInfo<MyPitInfo>(make_shared<MyPitInfo>());
@@ -199,24 +204,40 @@ WeightedLoadBalancerStrategy::afterReceiveInterest(const Face& inFace,
 
 
 void
-WeightedLoadBalancerStrategy::beforeSatisfyPendingInterest(shared_ptr<pit::Entry> pitEntry,
-                                                           const Face& inFace,
-                                                           const Data& data)
+WeightedLoadBalancerStrategy::beforeSatisfyInterest(shared_ptr<pit::Entry> pitEntry,
+                                                    const Face& inFace,
+                                                    const Data& data)
 {
+  NFD_LOG_TRACE("Received Data: " << data.getName());
   shared_ptr<MyPitInfo> pitInfo = pitEntry->getStrategyInfo<MyPitInfo>();
 
   // No start time available, cannot compute delay for this retrieval
   if (!static_cast<bool>(pitInfo))
-    return;
+    {
+      NFD_LOG_TRACE("No start time available for Data " << data.getName());
+      return;
+    }
 
   const milliseconds delay =
     duration_cast<milliseconds>(system_clock::now() - pitInfo->creationTime);
+
+  NFD_LOG_TRACE("Computed delay of: " << system_clock::now() << " - " << pitInfo->creationTime << " = " << delay);
 
   MeasurementsAccessor& accessor = this->getMeasurements();
 
   // Update Face delay measurements and entry lifetimes owned
   // by this strategy while walking up the NameTree
   shared_ptr<measurements::Entry> measurementsEntry = accessor.get(*pitEntry);
+  if (static_cast<bool>(measurementsEntry))
+    {
+      NFD_LOG_TRACE("accessor returned measurements entry " << measurementsEntry->getName()
+                   << " for " << pitEntry->getName());
+    }
+  else
+    {
+      NFD_LOG_WARN ("accessor returned invalid measurements entry for " << pitEntry->getName());
+    }
+
   while (static_cast<bool>(measurementsEntry))
     {
       shared_ptr<MyMeasurementInfo> measurementsEntryInfo =
@@ -257,18 +278,22 @@ WeightedLoadBalancerStrategy::mySendInterest(const Interest& interest,
   boost::random::uniform_int_distribution<> dist(0, inverseTotalDelay.count());
   const uint64_t selection = dist(m_randomGenerator);
 
+  NFD_LOG_TRACE("selection = " << selection);
+
   uint64_t cumulativeWeight = 0;
 
   for (WeightedFaceSetByDelay::const_iterator i = facesByDelay.begin();
        i != facesByDelay.end();
        ++i)
     {
+      NFD_LOG_TRACE("cumulative weight = " << cumulativeWeight);
       // weight = inverted delay measurement
       const uint64_t weight = totalDelay.count() - i->lastDelay.count();
       cumulativeWeight += weight;
 
       if(selection <= cumulativeWeight && pitEntry->canForwardTo(i->face))
         {
+          NFD_LOG_TRACE("fowarding " << interest.getName() << " out face " << i->face.getId());
           this->sendInterest(pitEntry, this->getFace(i->face.getId()));
           return true;
         }
