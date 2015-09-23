@@ -56,6 +56,9 @@ public:
                         const Face& inFace,
                         const Data& data) DECL_OVERRIDE;
 
+  virtual void
+  beforeExpirePendingInterest(shared_ptr<pit::Entry> pitEntry) DECL_OVERRIDE;
+
 
 protected:
 

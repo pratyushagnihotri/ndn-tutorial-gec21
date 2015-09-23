@@ -187,7 +187,29 @@ WeightedLoadBalancerStrategy::beforeSatisfyInterest(shared_ptr<pit::Entry> pitEn
   // TODO Implement me
 }
 
+void
+WeightedLoadBalancerStrategy::beforeExpirePendingInterest(shared_ptr<pit::Entry> pitEntry)
+{
+  MeasurementsAccessor& accessor = this->getMeasurements();
+  shared_ptr<measurements::Entry> measurementsEntry = accessor.get(*pitEntry);
 
+  while (static_cast<bool>(measurementsEntry))
+    {
+      shared_ptr<MyMeasurementInfo> measurementsEntryInfo =
+        measurementsEntry->getStrategyInfo<MyMeasurementInfo>();
+
+      if (static_cast<bool>(measurementsEntryInfo))
+        {
+          for (auto& entry : pitEntry->getOutRecords())
+            {
+              measurementsEntryInfo->updateFaceDelay(*(entry.getFace()),
+                                                     milliseconds::max());
+            }
+        }
+
+      measurementsEntry = accessor.getParent(*measurementsEntry);
+    }
+}
 
 
 /////////////////////////////
