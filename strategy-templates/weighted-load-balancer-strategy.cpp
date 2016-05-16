@@ -23,6 +23,8 @@
  * NFD, e.g., in COPYING.md file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ndn-cxx/util/time.hpp>
+
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -31,8 +33,6 @@
 
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/chrono/system_clocks.hpp>
-
-#include <ndn-cxx/util/time.hpp>
 
 #include "weighted-load-balancer-strategy.hpp"
 
